@@ -25,9 +25,7 @@
 
 package jdk.tools.internal;
 
+import java.util.spi.ToolProvider;
 import jdk.tools.Tool;
 
-import java.util.spi.ToolProvider;
-
-public record DefaultTool(String namespace, String name, ToolProvider provider) implements Tool {
-}
+public record DefaultTool(String namespace, String name, ToolProvider provider) implements Tool {}

@@ -25,5 +25,7 @@
 
 /** Defines the Java Tooling API. */
 module jdk.tools {
+  requires jdk.jfr;
+
   exports jdk.tools;
 }

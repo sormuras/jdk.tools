@@ -25,15 +25,61 @@
 
 package jdk.tools;
 
-/** A runner of tools. */
-public interface ToolRunner {
-  ToolFinder finder();
+import jdk.tools.internal.StringPrintWriter;
+import jdk.tools.internal.ToolRunEvent;
 
-  void run(Tool tool, String... args);
+/** A runner of tools providing default implementations. */
+@FunctionalInterface
+public interface ToolRunner {
+  /** Run-time relevant components used by all tool runner implementations. */
+  interface Context {
+    ToolFinder finder();
+
+    ToolPrinter printer();
+  }
+
+  Context context();
 
   default void run(String tool, String... args) {
-    var found = finder().find(tool);
+    var finder = context().finder();
+    var found = finder.find(tool);
     if (found.isEmpty()) throw new ToolNotFoundException(tool);
     run(found.get(), args);
+  }
+
+  default void run(Tool tool, String... args) {
+    run(context().printer(), tool, args);
+  }
+
+  default void run(ToolPrinter printer, Tool tool, String... args) {
+    var event = new ToolRunEvent();
+    event.namespace = tool.namespace();
+    event.name = tool.name();
+    event.provider = tool.provider().getClass();
+    event.args = String.join(" ", args);
+
+    printer.debug("| " + event.name + " " + event.args);
+    event.begin();
+    try {
+      var out = new StringPrintWriter(printer.out());
+      var err = new StringPrintWriter(printer.err());
+      var provider = tool.provider();
+      var loader = provider.getClass().getClassLoader();
+      Thread.currentThread().setContextClassLoader(loader);
+      event.code =
+          provider instanceof ToolOperator operator
+              ? operator.run(this, out, err, args)
+              : provider.run(out, err, args);
+      event.end();
+      if (out.checkError()) System.err.println("The normal output stream had troubles");
+      if (err.checkError()) System.err.println("The errors output stream had troubles");
+      event.out = out.toString().strip();
+      event.err = err.toString().strip();
+      if (event.code == 0) return;
+    } finally {
+      event.commit();
+    }
+    var message = "Tool %s returned exit code: %d".formatted(tool.toNamespaceAndName(), event.code);
+    throw new RuntimeException(message);
   }
 }

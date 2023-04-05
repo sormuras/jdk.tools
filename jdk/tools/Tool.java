@@ -54,4 +54,8 @@ public interface Tool extends ToolFinder {
   default List<Tool> tools() {
     return List.of(this);
   }
+
+  default String toNamespaceAndName() {
+    return namespace().isEmpty() ? name() : namespace() + '/' + name();
+  }
 }
