@@ -23,7 +23,11 @@
  * questions.
  */
 
-/** Defines the Java Tooling API. */
-module jdk.tools {
-  exports jdk.tools;
+package jdk.tools.internal;
+
+import jdk.tools.Tool;
+
+import java.util.spi.ToolProvider;
+
+public record DefaultTool(String namespace, String name, ToolProvider provider) implements Tool {
 }

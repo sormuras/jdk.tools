@@ -23,7 +23,5 @@
  * questions.
  */
 
-/** Defines the Java Tooling API. */
-module jdk.tools {
-  exports jdk.tools;
-}
+/** Provides interfaces and classes for finding and running Java tools. */
+package jdk.tools;

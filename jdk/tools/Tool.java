@@ -23,7 +23,35 @@
  * questions.
  */
 
-/** Defines the Java Tooling API. */
-module jdk.tools {
-  exports jdk.tools;
+package jdk.tools;
+
+import java.util.List;
+import java.util.spi.ToolProvider;
+
+/** Represents a tool descriptor. */
+public interface Tool extends ToolFinder {
+  static Tool of(String name) throws ToolNotFoundException {
+    var found = ToolProvider.findFirst(name);
+    if (found.isEmpty()) throw new ToolNotFoundException(name);
+    return Tool.of(found.get());
+  }
+
+  static Tool of(ToolProvider provider) {
+    return Internal.newTool(provider);
+  }
+
+  ToolProvider provider();
+
+  default String namespace() {
+    return Internal.computeNamespace(provider());
+  }
+
+  default String name() {
+    return provider().name();
+  }
+
+  @Override
+  default List<Tool> tools() {
+    return List.of(this);
+  }
 }

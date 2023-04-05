@@ -23,7 +23,17 @@
  * questions.
  */
 
-/** Defines the Java Tooling API. */
-module jdk.tools {
-  exports jdk.tools;
+package jdk.tools;
+
+/** A runner of tools. */
+public interface ToolRunner {
+  ToolFinder finder();
+
+  void run(Tool tool, String... args);
+
+  default void run(String tool, String... args) {
+    var found = finder().find(tool);
+    if (found.isEmpty()) throw new ToolNotFoundException(tool);
+    run(found.get(), args);
+  }
 }
