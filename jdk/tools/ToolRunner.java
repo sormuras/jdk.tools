@@ -40,6 +40,10 @@ public interface ToolRunner {
 
   Context context();
 
+  default void run(Command command) {
+    run(command.tool(), command.toArray());
+  }
+
   default void run(String tool, String... args) {
     var finder = context().finder();
     var found = finder.find(tool);
