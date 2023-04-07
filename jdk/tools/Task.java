@@ -86,10 +86,13 @@ public record Task(String namespace, String name, List<Command> commands) implem
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.MODULE)
   @Repeatable(Of.Annotations.class)
-  @interface Of {
+  public @interface Of {
     String namespace() default MODULE_NAME;
+
     String name();
+
     String delimiter() default ARGUMENT_DELIMITER;
+
     String[] args();
 
     @Retention(RetentionPolicy.RUNTIME)

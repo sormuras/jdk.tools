@@ -28,4 +28,7 @@ module jdk.tools {
   requires jdk.jfr;
 
   exports jdk.tools;
+
+  uses java.util.spi.ToolProvider;
+  uses jdk.tools.ToolFinder;
 }

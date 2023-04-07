@@ -71,7 +71,7 @@ class Internal {
     return new DefaultToolFinder(List.of(tools));
   }
 
-  static ToolFinder newToolFinder(List<Tool> tools) {
+  static ToolFinder newToolFinder(List<? extends Tool> tools) {
     if (tools.isEmpty()) return emptyToolFinder();
     if (tools.size() == 1) return tools.get(0);
     return new DefaultToolFinder(List.copyOf(tools));

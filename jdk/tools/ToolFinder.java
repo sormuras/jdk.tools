@@ -25,8 +25,12 @@
 
 package jdk.tools;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.ServiceLoader;
+import java.util.function.Predicate;
+import java.util.spi.ToolProvider;
 
 /** An ordered and searchable collection of tool descriptors. */
 public interface ToolFinder {
@@ -38,8 +42,47 @@ public interface ToolFinder {
     return Internal.newToolFinder(tools);
   }
 
-  static ToolFinder of(List<Tool> tools) {
+  static ToolFinder of(List<? extends Tool> tools) {
     return Internal.newToolFinder(tools);
+  }
+
+  static ToolFinder of(ModuleLayer layer) {
+    return ToolFinder.of(layer, __ -> true);
+  }
+
+  static ToolFinder of(ModuleLayer layer, Predicate<Module> include) {
+    return ToolFinder.compose(
+        ToolFinder.ofTasks(layer, include),
+        ToolFinder.ofFinders(ServiceLoader.load(layer, ToolFinder.class), include),
+        ToolFinder.ofProviders(ServiceLoader.load(layer, ToolProvider.class), include));
+  }
+
+  static ToolFinder ofFinders(ServiceLoader<ToolFinder> loader, Predicate<Module> include) {
+    var finders =
+        loader.stream()
+            .filter(provider -> include.test(provider.type().getModule()))
+            .map(ServiceLoader.Provider::get)
+            .toList();
+    return ToolFinder.compose(finders);
+  }
+
+  static ToolFinder ofProviders(ServiceLoader<ToolProvider> loader, Predicate<Module> include) {
+    var tools =
+        loader.stream()
+            .filter(provider -> include.test(provider.type().getModule()))
+            .map(ServiceLoader.Provider::get)
+            .map(Tool::of)
+            .sorted(Comparator.comparing(Tool::namespace).thenComparing(Tool::name))
+            .toList();
+    return ToolFinder.of(tools);
+  }
+
+  static ToolFinder ofTasks(ModuleLayer layer, Predicate<Module> include) {
+    var tasks = layer.modules().stream()
+        .filter(include)
+        .flatMap(module -> Task.of(module).stream())
+        .toList();
+    return ToolFinder.of(tasks);
   }
 
   static ToolFinder compose(ToolFinder... finders) {
