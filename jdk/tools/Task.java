@@ -31,62 +31,43 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
-/**
- * Represents named sequence of command instances.
- *
- * @param namespace the namespace of this task
- * @param name the name of this task
- * @param commands the list of command instances to execute
- */
-public record Task(String namespace, String name, List<Command> commands) implements ToolOperator {
-  public static final String ARGUMENT_DELIMITER = "+";
-  public static final String MODULE_NAME = "*";
+/** A tool operator extension for running an ordered collection of command instances. */
+@FunctionalInterface
+public interface Task extends ToolOperator {
+  static Task of(String namespace, String name, Command first, Command... more) {
+    return Internal.newTask(namespace, name, first, more);
+  }
 
   // args = ["jar", "--version", "+", "javac", "--version", ...]
-  public static Task of(String namespace, String name, String... args) {
-    return Task.of(namespace, name, ARGUMENT_DELIMITER, List.of(args));
+  static Task of(String namespace, String name, String... args) {
+    return Internal.newTask(namespace, name, args);
   }
 
-  // args = ["jar", "--version", <delimiter>, "javac", "--version", ...]
-  static Task of(String namespace, String name, String delimiter, List<String> args) {
-    if (args.isEmpty()) return new Task(namespace, name, List.of());
-    var arguments = new ArrayDeque<>(args);
-    var elements = new ArrayList<String>();
-    var commands = new ArrayList<Command>();
-    while (true) {
-      var empty = arguments.isEmpty();
-      if (empty || arguments.peekFirst().equals(delimiter)) {
-        commands.add(Command.of(elements.get(0)).with(elements.stream().skip(1)));
-        elements.clear();
-        if (empty) break;
-        arguments.pop(); // consume delimiter
-      }
-      var element = arguments.pop(); // consume element
-      elements.add(element.trim());
-    }
-    return new Task(namespace, name, List.copyOf(commands));
-  }
+  String ARGUMENT_DELIMITER = "+";
 
-  public Task {
-    if (name.isBlank()) throw new IllegalArgumentException("name must not be blank");
-    if (commands == null) throw new IllegalArgumentException("commands must not be null");
+  String MODULE_NAME = "*";
+
+  List<Command> commands();
+
+  default boolean parallel() {
+    return false;
   }
 
   @Override
-  public int run(ToolRunner runner, PrintWriter out, PrintWriter err, String... args) {
-    for (var command : commands) runner.run(command);
+  default int run(ToolRunner runner, PrintWriter out, PrintWriter err, String... args) {
+    var commands = commands();
+    if (parallel()) commands.stream().parallel().forEach(runner::run);
+    else for (var command : commands) runner.run(command);
     return 0;
   }
 
+  /** An annotation used to attach named command sequences to a module descriptor. */
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.MODULE)
-  @Repeatable(Of.Annotations.class)
-  public @interface Of {
+  @Repeatable(Of.Container.class)
+  @interface Of {
     String namespace() default MODULE_NAME;
 
     String name();
@@ -97,23 +78,8 @@ public record Task(String namespace, String name, List<Command> commands) implem
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.MODULE)
-    @interface Annotations {
+    @interface Container {
       Of[] value();
     }
-  }
-
-  static List<Task> of(Module module) {
-    return Stream.of(module.getAnnotationsByType(Of.class))
-        .map(annotation -> Task.of(module, annotation))
-        .toList();
-  }
-
-  static Task of(Module module, Of annotation) {
-    var namespace = annotation.namespace();
-    return Task.of(
-        namespace.equals(MODULE_NAME) ? module.getName() : namespace,
-        annotation.name(),
-        annotation.delimiter(),
-        List.of(annotation.args()));
   }
 }

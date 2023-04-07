@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.spi.ToolProvider;
 
 /** Represents a tool descriptor. */
+@FunctionalInterface
 public interface Tool extends ToolFinder {
   static Tool of(String name) throws ToolNotFoundException {
     var found = ToolProvider.findFirst(name);
@@ -42,10 +43,6 @@ public interface Tool extends ToolFinder {
 
   static Tool of(String namespace, ToolProvider provider) {
     return Internal.newTool(namespace, provider);
-  }
-
-  static Tool of(String namespace, String name, Command first, Command... more) {
-    return Internal.newTask(namespace, name, first, more);
   }
 
   ToolProvider provider();

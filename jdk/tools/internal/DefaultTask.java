@@ -23,28 +23,23 @@
  * questions.
  */
 
-package jdk.tools;
+package jdk.tools.internal;
 
-import java.io.PrintWriter;
-import java.util.spi.ToolProvider;
+import java.util.List;
+import jdk.tools.Command;
+import jdk.tools.Task;
 
-/** A tool provider extension capable of running other tools. */
-@FunctionalInterface
-public interface ToolOperator extends Tool, ToolProvider {
-  @Override
-  default String name() {
-    return Tool.super.name();
+/**
+ * Represents an ordered collection of command instances.
+ *
+ * @param namespace the namespace of this task
+ * @param name the name of this task
+ * @param commands the list of command instances to execute
+ */
+public record DefaultTask(String namespace, String name, List<Command> commands) implements Task {
+  public DefaultTask {
+    if (namespace == null) throw new IllegalArgumentException("namespace must not be null");
+    if (name.isBlank()) throw new IllegalArgumentException("name must not be blank");
+    if (commands == null) throw new IllegalArgumentException("commands must not be null");
   }
-
-  @Override
-  default ToolProvider provider() {
-    return this;
-  }
-
-  @Override
-  default int run(PrintWriter out, PrintWriter err, String... args) {
-    throw new AssertionError();
-  }
-
-  int run(ToolRunner runner, PrintWriter out, PrintWriter err, String... args);
 }
