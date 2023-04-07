@@ -47,7 +47,16 @@ class Internal {
   }
 
   static Tool newTool(ToolProvider provider) {
-    return new DefaultTool(computeNamespace(provider), provider.name(), provider);
+    return newTool(computeNamespace(provider), provider);
+  }
+
+  static Tool newTool(String namespace, ToolProvider provider) {
+    return new DefaultTool(namespace, provider.name(), provider);
+  }
+
+  static Task newTask(String namespace, String name, Command first, Command... more) {
+    if (more.length == 0) return new Task(namespace, name, List.of(first));
+    return new Task(namespace, name, Stream.concat(Stream.of(first), Stream.of(more)).toList());
   }
 
   static ToolFinder newToolFinder(String... tools) {

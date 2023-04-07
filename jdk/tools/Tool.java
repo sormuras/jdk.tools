@@ -40,6 +40,14 @@ public interface Tool extends ToolFinder {
     return Internal.newTool(provider);
   }
 
+  static Tool of(String namespace, ToolProvider provider) {
+    return Internal.newTool(namespace, provider);
+  }
+
+  static Tool of(String namespace, String name, Command first, Command... more) {
+    return Internal.newTask(namespace, name, first, more);
+  }
+
   ToolProvider provider();
 
   default String namespace() {
