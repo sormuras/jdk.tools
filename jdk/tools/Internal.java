@@ -25,6 +25,7 @@
 
 package jdk.tools;
 
+import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,8 @@ import jdk.tools.internal.DefaultTask;
 import jdk.tools.internal.DefaultTool;
 import jdk.tools.internal.DefaultToolFinder;
 import jdk.tools.internal.EmptyToolFinder;
+import jdk.tools.internal.StringPrintWriter;
+import jdk.tools.internal.ToolRunEvent;
 
 /** Package-private helper containing utility methods and accessors for internal implementations. */
 class Internal {
@@ -49,6 +52,10 @@ class Internal {
   static boolean matchesToolName(Tool tool, String string) {
     String name = tool.name();
     return name.equals(string) || name.startsWith(string + '@');
+  }
+
+  static PrintWriter newStringPrintWriter(PrintWriter other) {
+    return new StringPrintWriter(other);
   }
 
   static Tool newTool(ToolProvider provider) {
@@ -153,6 +160,14 @@ class Internal {
       }
     }
     return ToolFinder.of(tasks);
+  }
+
+  static ToolRunEvent newToolRunEvent(Tool tool) {
+    var event = new ToolRunEvent();
+    event.namespace = tool.namespace();
+    event.name = tool.name();
+    event.provider = tool.provider().getClass();
+    return event;
   }
 
   static ToolFinder composeToolFinder(ToolFinder... finders) {

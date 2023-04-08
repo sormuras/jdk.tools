@@ -25,9 +25,6 @@
 
 package jdk.tools;
 
-import jdk.tools.internal.StringPrintWriter;
-import jdk.tools.internal.ToolRunEvent;
-
 /** A runner of tools providing default implementations. */
 @FunctionalInterface
 public interface ToolRunner {
@@ -56,17 +53,15 @@ public interface ToolRunner {
   }
 
   default void run(ToolPrinter printer, Tool tool, String... args) {
-    var event = new ToolRunEvent();
-    event.namespace = tool.namespace();
-    event.name = tool.name();
-    event.provider = tool.provider().getClass();
+    var event = Internal.newToolRunEvent(tool);
+
     event.args = String.join(" ", args);
 
     printer.debug("| " + event.name + " " + event.args);
     event.begin();
     try {
-      var out = new StringPrintWriter(printer.out());
-      var err = new StringPrintWriter(printer.err());
+      var out = Internal.newStringPrintWriter(printer.out());
+      var err = Internal.newStringPrintWriter(printer.err());
       var provider = tool.provider();
       var loader = provider.getClass().getClassLoader();
       Thread.currentThread().setContextClassLoader(loader);
