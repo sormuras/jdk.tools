@@ -7,7 +7,7 @@ import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 
-@Category("JDK Tools")
+@Category({"Java Development Kit", "Tools"})
 @Enabled
 @StackTrace(false)
 @Label("Tool Run")
