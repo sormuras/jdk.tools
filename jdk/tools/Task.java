@@ -76,6 +76,7 @@ public interface Task extends ToolOperator {
 
     String[] args();
 
+    /** Repeatable annotation collector. */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.MODULE)
     @interface Container {

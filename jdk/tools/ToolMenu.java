@@ -29,6 +29,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.spi.ToolProvider;
 
+/** Subcommand support via a nested tool finder. */
 public interface ToolMenu extends Tool, ToolOperator {
   ToolFinder items();
 
