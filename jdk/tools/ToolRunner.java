@@ -81,4 +81,16 @@ public interface ToolRunner {
     var message = "Tool %s returned exit code: %d".formatted(tool.toNamespaceAndName(), event.code);
     throw new RuntimeException(message);
   }
+
+  static ToolRunner ofSystem() {
+    return ToolRunner.of(ToolFinder.of(ModuleLayer.boot()));
+  }
+
+  static ToolRunner of(ToolFinder finder) {
+    return ToolRunner.of(finder, ToolPrinter.ofSystem());
+  }
+
+  static ToolRunner of(ToolFinder finder, ToolPrinter printer) {
+    return Internal.newToolRunner(finder, printer);
+  }
 }

@@ -37,6 +37,7 @@ import jdk.tools.internal.CompositeToolFinder;
 import jdk.tools.internal.DefaultTask;
 import jdk.tools.internal.DefaultTool;
 import jdk.tools.internal.DefaultToolFinder;
+import jdk.tools.internal.DefaultToolRunner;
 import jdk.tools.internal.EmptyToolFinder;
 import jdk.tools.internal.StringPrintWriter;
 import jdk.tools.internal.ToolRunEvent;
@@ -184,6 +185,10 @@ class Internal {
 
   static ToolFinder emptyToolFinder() {
     return EmptyToolFinder.INSTANCE;
+  }
+
+  static ToolRunner newToolRunner(ToolFinder finder, ToolPrinter printer) {
+    return new DefaultToolRunner(finder, printer);
   }
 
   private Internal() {}
