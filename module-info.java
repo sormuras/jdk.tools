@@ -124,4 +124,5 @@ module jdk.tools {
 
   uses java.util.spi.ToolProvider;
   uses jdk.tools.ToolFinder;
+  uses jdk.tools.ToolInstaller;
 }

@@ -26,6 +26,8 @@
 package jdk.tools;
 
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +66,11 @@ class Internal {
   }
 
   static Tool newTool(String namespace, ToolProvider provider) {
-    return new DefaultTool(namespace, provider.name(), provider);
+    return newTool(namespace, provider.name(), provider);
+  }
+
+  static Tool newTool(String namespace, String name, ToolProvider provider) {
+    return new DefaultTool(namespace, name, provider);
   }
 
   static Task newTask(String namespace, String name, String... args) {
@@ -116,8 +122,9 @@ class Internal {
   }
 
   static ToolFinder newToolFinder(ModuleLayer layer, Predicate<Module> include) {
-    return ToolFinder.compose(
+    return composeToolFinder(
         newToolFinderOfTasks(layer, include),
+        newToolFinderOfInstallers(layer, include),
         newToolFinderOfFinders(ServiceLoader.load(layer, ToolFinder.class), include),
         newToolFinderOfProviders(ServiceLoader.load(layer, ToolProvider.class), include));
   }
@@ -129,7 +136,7 @@ class Internal {
             .filter(provider -> include.test(provider.type().getModule()))
             .map(ServiceLoader.Provider::get)
             .toList();
-    return ToolFinder.compose(finders);
+    return composeToolFinder(finders);
   }
 
   static ToolFinder newToolFinderOfProviders(
@@ -161,6 +168,34 @@ class Internal {
       }
     }
     return ToolFinder.of(tasks);
+  }
+
+  static ToolFinder newToolFinderOfInstallers(ModuleLayer layer, Predicate<Module> include) {
+    if (layer.modules().isEmpty()) return emptyToolFinder();
+    var modules = layer.modules().stream().filter(include).toList();
+    if (modules.isEmpty()) return emptyToolFinder();
+    var installers =
+        ServiceLoader.load(layer, ToolInstaller.class).stream()
+            .filter(provider -> include.test(provider.type().getModule()))
+            .map(ServiceLoader.Provider::get)
+            .toList();
+    var finders = new ArrayList<ToolFinder>();
+    for (var module : modules) {
+      for (var annotation : module.getAnnotationsByType(ToolInstaller.Setup.class)) {
+        var service = annotation.service();
+        var version = annotation.version();
+        var installer =
+            installers.stream().filter(it -> it.getClass() == service).findFirst().orElseThrow();
+        try {
+          var folder = Path.of(".duke", "tmp", "tools", installer.name() + '@' + version);
+          var finder = installer.install(Files.createDirectories(folder), version);
+          finders.add(finder);
+        } catch (Exception exception) {
+          throw exception instanceof RuntimeException re ? re : new RuntimeException(exception);
+        }
+      }
+    }
+    return composeToolFinder(finders);
   }
 
   static ToolRunEvent newToolRunEvent(Tool tool) {

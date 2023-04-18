@@ -45,6 +45,10 @@ public interface Tool extends ToolFinder {
     return Internal.newTool(namespace, provider);
   }
 
+  static Tool of(String namespace, String name, ToolProvider provider) {
+    return Internal.newTool(namespace, name, provider);
+  }
+
   ToolProvider provider();
 
   default String namespace() {
