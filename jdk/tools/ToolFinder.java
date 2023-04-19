@@ -27,7 +27,6 @@ package jdk.tools;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 /** An ordered and searchable collection of tool descriptors. */
 @FunctionalInterface
@@ -44,20 +43,16 @@ public interface ToolFinder {
     return Internal.newToolFinder(tools);
   }
 
-  static ToolFinder of(ModuleLayer layer) {
-    return Internal.newToolFinder(layer, __ -> true);
-  }
-
-  static ToolFinder of(ModuleLayer layer, Predicate<Module> include) {
-    return Internal.newToolFinder(layer, include);
-  }
-
   static ToolFinder compose(ToolFinder... finders) {
     return Internal.composeToolFinder(finders);
   }
 
   static ToolFinder compose(List<ToolFinder> finders) {
     return Internal.composeToolFinder(finders);
+  }
+
+  static ToolFinder empty() {
+    return Internal.emptyToolFinder();
   }
 
   List<Tool> tools();

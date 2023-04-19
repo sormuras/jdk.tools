@@ -45,6 +45,11 @@ public interface Task extends ToolOperator {
     return Internal.newTask(namespace, name, args);
   }
 
+  // args = ["jar", "--version", "+", "javac", "--version", ...]
+  static Task of(String namespace, String name, String delimiter, List<String> args) {
+    return Internal.newTask(namespace, name, delimiter, args);
+  }
+
   String ARGUMENT_DELIMITER = "+";
 
   String MODULE_NAME = "*";

@@ -25,6 +25,9 @@
 
 package jdk.tools;
 
+import java.util.ServiceLoader;
+import java.util.spi.ToolProvider;
+
 /** A runner of tools providing default implementations. */
 @FunctionalInterface
 public interface ToolRunner {
@@ -83,7 +86,9 @@ public interface ToolRunner {
   }
 
   static ToolRunner ofSystem() {
-    return ToolRunner.of(ToolFinder.of(ModuleLayer.boot()));
+    var loader = ServiceLoader.load(ToolProvider.class);
+    var finder = Internal.newToolFinder(loader, __ -> true);
+    return ToolRunner.of(finder);
   }
 
   static ToolRunner of(ToolFinder finder) {

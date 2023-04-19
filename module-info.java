@@ -57,7 +57,6 @@
  * <ul>
  *   <li>{@link jdk.tools.ToolFinder#of(String...)} ...
  *   <li>{@link jdk.tools.ToolFinder#of(jdk.tools.Tool...)} ...
- *   <li>{@link jdk.tools.ToolFinder#of(ModuleLayer)} ...
  * </ul>
  *
  * <p>An implementation of the {@link jdk.tools.ToolRunner ToolRunner} interface offers various
@@ -123,6 +122,4 @@ module jdk.tools {
   exports jdk.tools;
 
   uses java.util.spi.ToolProvider;
-  uses jdk.tools.ToolFinder;
-  uses jdk.tools.ToolInstaller;
 }
