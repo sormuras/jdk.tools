@@ -26,11 +26,6 @@
 package jdk.tools;
 
 import java.io.PrintWriter;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.List;
 
 /** A tool operator extension for running an ordered collection of command instances. */
@@ -66,26 +61,5 @@ public interface Task extends ToolOperator {
     if (parallel()) commands.stream().parallel().forEach(runner::run);
     else for (var command : commands) runner.run(command);
     return 0;
-  }
-
-  /** An annotation used to attach named command sequences to a module descriptor. */
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target(ElementType.MODULE)
-  @Repeatable(Of.Container.class)
-  @interface Of {
-    String namespace() default MODULE_NAME;
-
-    String name();
-
-    String delimiter() default ARGUMENT_DELIMITER;
-
-    String[] args();
-
-    /** Repeatable annotation collector. */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.MODULE)
-    @interface Container {
-      Of[] value();
-    }
   }
 }
