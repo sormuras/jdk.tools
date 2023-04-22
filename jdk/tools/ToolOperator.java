@@ -26,6 +26,7 @@
 package jdk.tools;
 
 import java.io.PrintWriter;
+import java.util.Set;
 import java.util.spi.ToolProvider;
 
 /** A tool provider extension capable of running other tools. */
@@ -39,6 +40,11 @@ public interface ToolOperator extends Tool, ToolProvider {
   @Override
   default ToolProvider provider() {
     return this;
+  }
+
+  /** {@return names of required tools or an empty set indicating any tool name} */
+  default Set<String> requires() {
+    return Set.of();
   }
 
   @Override
